@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.model import User, Post
+from app.model import User, Post, Message, Notifications
 
 app = create_app()
 
@@ -8,5 +8,7 @@ def make_shell_context():
     return {
         'db': db,
         'User': User,
-        'Post': Post
+        'Post': Post,
+        'Message': Message,
+        'Notifications': Notifications
     }

@@ -46,6 +46,16 @@
                         </li>
                         {% else %}
                         <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="{{ url_for('main.messages') }}">{{ _('Messages') }}</a>
+                            {% set new_messages = current_user.new_messages() %}
+                            {% if new_messages %}
+                            <span id="message_count" class="badge"
+                                  style="visibility: {%if new_messages%}visible{%else%}hidden{%endif%}">
+                                {{ new_messages }}
+                            </span>
+                            {% endif %}
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" aria-current="page" href="{{ url_for('main.user', username=current_user.username) }}">{{ _('Profile') }}</a>
                         </li>
                         <li class="nav-item">
@@ -102,7 +112,27 @@
                   });
                 }
             }
-          document.addEventListener('DOMContentLoaded', initialize_popovers);
+            document.addEventListener('DOMContentLoaded', initialize_popovers);
+            function set_message_count() {
+                const count = document.getElementById('message_count');
+                count.InnerText = n;
+                count.style.visibility = n ? 'visible' : 'hidden';
+            }
+            {% if current_user.is_authenticated %}
+            function initialize_notifications() {
+              let since = 0;
+              setInterval(async function() {
+                const response = await fetch('{{ url_for('main.notifications') }}?since=' + since);
+                const notifications = await response.json();
+                for (let i = 0; i < notifications.length; i++) {
+                  if (notifications[i].name == 'unread_message_count')
+                    set_message_count(notifications[i].data);
+                  since = notifications[i].timestamp;
+                }
+              }, 10000);
+            }
+            document.addEventListener('DOMContentLoaded', initialize_notifications);
+            {% endif %}
         </script>
     </body>
 </html>
