@@ -76,6 +76,7 @@ class PaginatedAPIMixin(object):
                                 **kwargs) if resources.has_prev else None
             }
         }
+        return data
 
 
 followers = db.Table('followers',
