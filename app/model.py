@@ -1,13 +1,12 @@
 import json
 from datetime import datetime, UTC
-from email.policy import default
 
 from time import time
 
 import redis.exceptions
 import rq.job
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app
+from flask import current_app, url_for
 from flask_login import UserMixin
 from hashlib import md5
 import jwt
@@ -156,6 +155,26 @@ class User(UserMixin, db.Model):
 
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self, complete=False).all()
+
+    def to_dict(self, include_email=False):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'last seen': self.last_seen.isoformat() + 'Z',
+            'about me': self.about_me,
+            'post count': self.posts.count(),
+            'follower count': self.followers.count(),
+            'followed count': self.followed.count(),
+            '_links': {
+                'self': url_for('api.get_user', id=self.id),
+                'followers': url_for('api.get_followers', id=self.id),
+                'followed': url_for('api.get_followed', id=self.id),
+                'avatar': self.avatar(128)
+            }
+        }
+        if include_email:
+            data['email'] = self.email
+        return data
 
 
 class Post(SearchableMixin, db.Model):
